@@ -1,0 +1,160 @@
+{
+  "general_skills": [
+    {
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Systematic Environment Exploration",
+      "principle": "Before attempting any task, systematically explore the environment to build a mental map of available objects and locations. Check containers, surfaces, and appliances methodically rather than guessing.",
+      "when_to_apply": "At the start of every episode, or when the agent is unsure where a target object might be located.",
+      "category": "General",
+      "embedding": null
+    },
+    {
+      "id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "State Verification Before Action",
+      "principle": "Always verify the current state of objects before performing operations. Check if an object is already clean before cleaning it, or already heated before heating it. Redundant actions waste steps and risk failure.",
+      "when_to_apply": "Before any state-changing action like clean, heat, cool, or put.",
+      "category": "General",
+      "embedding": null
+    },
+    {
+      "id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "name": "Inventory Awareness",
+      "principle": "Track what you are currently holding. You can only carry one object at a time. Attempting to pick up a second object will fail silently. Put down or place the current object before picking up another.",
+      "when_to_apply": "Before every pick-up action and when planning multi-object tasks.",
+      "category": "General",
+      "embedding": null
+    },
+    {
+      "id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "name": "Error Recovery via Backtracking",
+      "principle": "When an action fails or produces an unexpected observation, do not repeat the same action. Instead, backtrack to the last known good state and try an alternative approach. Failed actions often indicate a prerequisite is missing.",
+      "when_to_apply": "When receiving error messages, 'Nothing happens' responses, or unexpected observations.",
+      "category": "General",
+      "embedding": null
+    },
+    {
+      "id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "name": "Goal Decomposition",
+      "principle": "Break complex tasks into ordered sub-goals. For 'put a clean X in Y': (1) find X, (2) pick up X, (3) go to cleaning station, (4) clean X, (5) go to Y, (6) put X in Y. Execute sub-goals sequentially and verify each before proceeding.",
+      "when_to_apply": "When the task description involves multiple verbs or intermediate states.",
+      "category": "General",
+      "embedding": null
+    }
+  ],
+  "task_specific_skills": {
+    "Pick": [
+      {
+        "id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+        "name": "Container Priority Search",
+        "principle": "When looking for small household objects, prioritize checking countertops and open surfaces first, then cabinets and drawers. Fridges and microwaves are unlikely locations for non-food items.",
+        "when_to_apply": "When searching for a specific object to pick up and its location is unknown.",
+        "category": { "TaskSpecific": "Pick" },
+        "embedding": null
+      },
+      {
+        "id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+        "name": "Receptacle Capacity Check",
+        "principle": "Before placing an object in a receptacle, verify it has space. Some receptacles like small shelves or full cabinets will reject placement. Have a backup destination ready.",
+        "when_to_apply": "When the task requires placing an object in a specific receptacle type.",
+        "category": { "TaskSpecific": "Pick" },
+        "embedding": null
+      }
+    ],
+    "Clean": [
+      {
+        "id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+        "name": "Sink-First Cleaning Protocol",
+        "principle": "Always use sinkbasin for cleaning. Navigate to sinkbasin, then use 'clean X with sinkbasin'. The object must be in your inventory — you cannot clean objects that are placed on surfaces.",
+        "when_to_apply": "When the task requires cleaning an object before placing it somewhere.",
+        "category": { "TaskSpecific": "Clean" },
+        "embedding": null
+      }
+    ],
+    "Heat": [
+      {
+        "id": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+        "name": "Microwave Heating Sequence",
+        "principle": "To heat an object: (1) pick up the object, (2) go to microwave, (3) open microwave, (4) put object in microwave, (5) close microwave, (6) open microwave, (7) take object. Skipping the close-open cycle will not heat the object.",
+        "when_to_apply": "When the task requires heating any object, particularly food items.",
+        "category": { "TaskSpecific": "Heat" },
+        "embedding": null
+      }
+    ],
+    "search": [
+      {
+        "id": "d0e1f2a3-b4c5-6789-defa-890123456789",
+        "name": "Query Refinement Strategy",
+        "principle": "Start with specific search queries matching the task description. If results are poor, progressively broaden the query by removing adjectives. 'red cotton crew neck t-shirt' → 'red cotton t-shirt' → 'red t-shirt'.",
+        "when_to_apply": "When initial WebShop search returns no relevant results or too few options.",
+        "category": { "TaskSpecific": "search" },
+        "embedding": null
+      },
+      {
+        "id": "e1f2a3b4-c5d6-7890-efab-901234567890",
+        "name": "Price-Quality Tradeoff",
+        "principle": "When multiple products match, prefer exact attribute matches over lower prices. A $30 product matching all criteria scores higher than a $15 product missing one attribute. Partial reward from wrong attributes is worse than full price.",
+        "when_to_apply": "When choosing between multiple product options in WebShop.",
+        "category": { "TaskSpecific": "search" },
+        "embedding": null
+      }
+    ]
+  },
+  "history": [
+    {
+      "skill_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "added_at": "2025-06-15T10:30:00Z",
+      "evolution_cycle": 0
+    },
+    {
+      "skill_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "added_at": "2025-06-15T10:30:00Z",
+      "evolution_cycle": 0
+    },
+    {
+      "skill_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
+      "added_at": "2025-06-15T10:30:00Z",
+      "evolution_cycle": 0
+    },
+    {
+      "skill_id": "d4e5f6a7-b8c9-0123-defa-234567890123",
+      "added_at": "2025-06-15T10:30:00Z",
+      "evolution_cycle": 0
+    },
+    {
+      "skill_id": "e5f6a7b8-c9d0-1234-efab-345678901234",
+      "added_at": "2025-06-15T10:30:00Z",
+      "evolution_cycle": 0
+    },
+    {
+      "skill_id": "f6a7b8c9-d0e1-2345-fabc-456789012345",
+      "added_at": "2025-06-15T14:22:00Z",
+      "evolution_cycle": 1
+    },
+    {
+      "skill_id": "a7b8c9d0-e1f2-3456-abcd-567890123456",
+      "added_at": "2025-06-15T14:22:00Z",
+      "evolution_cycle": 1
+    },
+    {
+      "skill_id": "b8c9d0e1-f2a3-4567-bcde-678901234567",
+      "added_at": "2025-06-15T14:22:00Z",
+      "evolution_cycle": 1
+    },
+    {
+      "skill_id": "c9d0e1f2-a3b4-5678-cdef-789012345678",
+      "added_at": "2025-06-15T18:45:00Z",
+      "evolution_cycle": 2
+    },
+    {
+      "skill_id": "d0e1f2a3-b4c5-6789-defa-890123456789",
+      "added_at": "2025-06-15T18:45:00Z",
+      "evolution_cycle": 2
+    },
+    {
+      "skill_id": "e1f2a3b4-c5d6-7890-efab-901234567890",
+      "added_at": "2025-06-15T18:45:00Z",
+      "evolution_cycle": 2
+    }
+  ],
+  "current_cycle": 2
+}

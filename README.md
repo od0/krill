@@ -1,18 +1,49 @@
-# SkillRL
+# Krill
 
 Rust implementation of **[SkillRL: Evolving Agents via Recursive Skill-Augmented Reinforcement Learning](https://arxiv.org/abs/2602.08234)**.
 
-SkillRL bridges raw experience and policy improvement through automatic skill discovery and recursive evolution. It trains LLM-based agents by:
+Krill bridges raw experience and policy improvement through automatic skill discovery and recursive evolution. It trains LLM-based agents by:
 
 1. Collecting interaction trajectories in task environments
 2. Distilling reusable skills from successes and failures via a teacher model
 3. Cold-start fine-tuning with skill-augmented demonstrations
 4. RL training (GRPO) with recursive skill evolution
 
+## Quick Start
+
+Distill a real skill bank from ALFWorld trajectories using OpenAI:
+
+```bash
+# Build
+cargo build --release
+
+# Download pre-collected ALFWorld trajectories (3,119 episodes)
+curl -L -o data/alfworld_raw.json \
+  "https://huggingface.co/datasets/agent-eto/eto-sft-trajectory/resolve/main/data/alfworld_sft.json"
+
+# Convert to SkillRL format (100 trajectories)
+python3 scripts/convert_eto_trajectories.py \
+  --input data/alfworld_raw.json \
+  --output data/alfworld_trajectories.json \
+  --max 100
+
+# Distill skills using gpt-4o as teacher
+export OPENAI_API_KEY="sk-..."
+cargo run -- distill \
+  --trajectories data/alfworld_trajectories.json \
+  --output data/skill_bank.json \
+  --config config.demo.json
+
+# Inspect the result
+cargo run -- inspect data/skill_bank.json
+```
+
+This produces a skill bank with ~470 skills (general + task-specific) in about 9 minutes. See [docs/demo-run.md](docs/demo-run.md) for full details and sample output.
+
 ## Architecture
 
 ```
-skillrl/
+krill/
 ├── src/
 │   ├── main.rs              # CLI entrypoint (train, collect, distill, sft, rl, inspect)
 │   ├── lib.rs               # Library root
@@ -48,6 +79,15 @@ skillrl/
 │       ├── sft.rs           #   SftTrainer: cold-start supervised fine-tuning
 │       └── pipeline.rs      #   TrainingPipeline: full Algorithm 1 orchestration
 │
+├── scripts/
+│   └── convert_eto_trajectories.py  # Convert HuggingFace ETO data to SkillRL format
+│
+├── docs/
+│   ├── walkthrough.md       # Conceptual tutorial on the 4-phase pipeline
+│   ├── demo-run.md          # Full worked example with real data
+│   └── empathic-relevance.md
+│
+├── config.demo.json         # Demo config (OpenAI models)
 ├── Cargo.toml
 └── README.md
 ```
@@ -67,29 +107,29 @@ cargo build --release
 Runs all 4 phases end-to-end:
 
 ```bash
-skillrl train --env alfworld --mock
+krill train --env alfworld --mock
 ```
 
 ### Individual phases
 
 ```bash
 # Phase 1: Collect trajectories
-skillrl collect --episodes 64 --output data/trajectories.json
+krill collect --episodes 64 --output data/trajectories.json
 
 # Phase 2: Distill skills from trajectories
-skillrl distill --trajectories data/trajectories.json --output data/skill_bank.json
+krill distill --trajectories data/trajectories.json --output data/skill_bank.json
 
 # Phase 3: Cold-start supervised fine-tuning
-skillrl sft --skill-bank data/skill_bank.json --num-examples 7500
+krill sft --skill-bank data/skill_bank.json --num-examples 7500
 
 # Phase 4: RL training with recursive skill evolution
-skillrl rl --skill-bank data/skill_bank.json
+krill rl --skill-bank data/skill_bank.json
 ```
 
 ### Inspect a skill bank
 
 ```bash
-skillrl inspect data/skill_bank.json
+krill inspect data/skill_bank.json
 ```
 
 ### Global options
@@ -102,50 +142,28 @@ skillrl inspect data/skill_bank.json
 
 ## Configuration
 
-Pass a JSON file via `--config` to override defaults. All fields are optional — unspecified values use paper defaults.
+Pass a JSON file via `--config` to override defaults. All fields are optional — unspecified values use paper defaults. API keys can be set in the config file or via environment variable:
+
+```bash
+export OPENAI_API_KEY="sk-..."  # fills in any empty *_api_key fields
+```
+
+The included `config.demo.json` uses OpenAI models throughout (this is what the Quick Start uses):
 
 ```json
 {
-  "sft": {
-    "learning_rate": 1e-4,
-    "batch_size": 16,
-    "epochs": 3
-  },
-  "rl": {
-    "learning_rate": 1e-6,
-    "batch_size": 64,
-    "group_size": 8,
-    "kl_coeff": 0.01,
-    "clip_epsilon": 0.2,
-    "invalid_action_penalty": 0.1,
-    "max_prompt_length": 6000,
-    "max_response_length": 1024,
-    "training_epochs": 150
-  },
-  "skill_retrieval": {
-    "top_k": 6,
-    "similarity_threshold": 0.4
-  },
-  "evolution": {
-    "validation_interval": 5,
-    "max_new_skills": 3,
-    "evolution_threshold": 0.4,
-    "max_analysis_deep": 10,
-    "max_analysis_shallow": 5
-  },
   "model": {
-    "policy_api_base": "http://localhost:8000/v1",
-    "policy_model_id": "Qwen/Qwen2.5-7B-Instruct",
+    "policy_api_base": "https://api.openai.com/v1",
+    "policy_model_id": "gpt-4o-mini",
     "teacher_api_base": "https://api.openai.com/v1",
-    "teacher_model_id": "o3",
-    "policy_api_key": "",
-    "teacher_api_key": "",
+    "teacher_model_id": "gpt-4o",
     "embedding_api_base": "https://api.openai.com/v1",
-    "embedding_model_id": "text-embedding-3-small",
-    "embedding_api_key": ""
+    "embedding_model_id": "text-embedding-3-small"
   }
 }
 ```
+
+The paper uses a local Qwen2.5-7B-Instruct as the policy model (served via vLLM at `localhost:8000`) and o3 as the teacher. Any OpenAI-compatible API will work — swap in your preferred models and endpoints.
 
 ## Key algorithms
 
@@ -195,6 +213,11 @@ cargo test
 ```
 
 Runs 91 unit tests covering all modules — advantage estimation, GRPO loss, skill retrieval, environment simulation, trajectory collection, action parsing, prompt construction, and more.
+
+## Documentation
+
+- **[Walkthrough](docs/walkthrough.md)** — Conceptual tutorial explaining the 4-phase pipeline, how skills work, and the key insight
+- **[Demo Run](docs/demo-run.md)** — Full worked example: downloading real ALFWorld data, distilling 474 skills with gpt-4o, and inspecting results
 
 ## Paper reference
 

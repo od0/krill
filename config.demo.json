@@ -1,0 +1,40 @@
+{
+  "sft": {
+    "learning_rate": 1e-4,
+    "batch_size": 16,
+    "epochs": 3
+  },
+  "rl": {
+    "learning_rate": 1e-6,
+    "batch_size": 64,
+    "group_size": 8,
+    "kl_coeff": 0.01,
+    "clip_epsilon": 0.2,
+    "invalid_action_penalty": 0.1,
+    "max_prompt_length": 6000,
+    "max_response_length": 1024,
+    "training_epochs": 150
+  },
+  "skill_retrieval": {
+    "top_k": 6,
+    "similarity_threshold": 0.4
+  },
+  "evolution": {
+    "validation_interval": 5,
+    "max_new_skills": 3,
+    "evolution_threshold": 0.4,
+    "max_analysis_deep": 10,
+    "max_analysis_shallow": 5
+  },
+  "model": {
+    "policy_api_base": "https://api.openai.com/v1",
+    "policy_model_id": "gpt-4o-mini",
+    "teacher_api_base": "https://api.openai.com/v1",
+    "teacher_model_id": "gpt-4o",
+    "policy_api_key": "",
+    "teacher_api_key": "",
+    "embedding_api_base": "https://api.openai.com/v1",
+    "embedding_model_id": "text-embedding-3-small",
+    "embedding_api_key": ""
+  }
+}

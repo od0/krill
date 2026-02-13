@@ -1,8 +1,8 @@
 [package]
-name = "skillrl"
+name = "krill"
 version = "0.1.0"
 edition = "2021"
-description = "SkillRL: Evolving Agents via Recursive Skill-Augmented Reinforcement Learning"
+description = "Krill: Recursive Skill-Augmented RL for LLM Agents"
 license = "MIT"
 
 [dependencies]

@@ -1,6 +1,6 @@
-//! SkillRL: Evolving Agents via Recursive Skill-Augmented Reinforcement Learning
+//! Krill: Recursive Skill-Augmented RL for LLM Agents
 //!
-//! Implementation of the SkillRL framework which bridges raw experience and policy
+//! Rust implementation of the SkillRL framework which bridges raw experience and policy
 //! improvement through automatic skill discovery and recursive evolution.
 
 pub mod agent;

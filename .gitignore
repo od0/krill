@@ -1,1 +1,18 @@
+# Build
 /target
+
+# Data (downloaded/generated — see scripts/download_data.sh)
+data/alfworld_raw.json
+data/alfworld_trajectories.json
+data/demo_skill_bank.json
+data/trajectories.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store

@@ -1,6 +1,6 @@
-//! SkillRL CLI: Evolving Agents via Recursive Skill-Augmented Reinforcement Learning
+//! Krill: Recursive Skill-Augmented RL for LLM Agents
 //!
-//! Provides subcommands for each phase of the SkillRL pipeline:
+//! Provides subcommands for each phase of the pipeline:
 //!
 //! - `train`    -- Run the full training pipeline (all 4 phases)
 //! - `collect`  -- Phase 1: Collect trajectories with the base model
@@ -15,20 +15,20 @@ use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
 use tracing_subscriber::EnvFilter;
 
-use skillrl::config::SkillRLConfig;
-use skillrl::env::alfworld::MockAlfWorldEnv;
-use skillrl::env::webshop::MockWebShopEnv;
-use skillrl::env::AnyEnv;
-use skillrl::skill::library::SkillBank;
-use skillrl::training::TrainingPipeline;
+use krill::config::SkillRLConfig;
+use krill::env::alfworld::MockAlfWorldEnv;
+use krill::env::webshop::MockWebShopEnv;
+use krill::env::AnyEnv;
+use krill::skill::library::SkillBank;
+use krill::training::TrainingPipeline;
 
 // ---------------------------------------------------------------------------
 // CLI definition
 // ---------------------------------------------------------------------------
 
-/// SkillRL: Evolving Agents via Recursive Skill-Augmented Reinforcement Learning
+/// Krill: Recursive Skill-Augmented RL for LLM Agents
 #[derive(Parser)]
-#[command(name = "skillrl", version, about)]
+#[command(name = "krill", version, about)]
 struct Cli {
     /// Path to a JSON configuration file (uses defaults if not provided).
     #[arg(long, global = true)]
@@ -121,7 +121,7 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
 
     // Load or create configuration.
-    let config = match &cli.config {
+    let mut config = match &cli.config {
         Some(path) => {
             let text = std::fs::read_to_string(path)
                 .with_context(|| format!("Failed to read config from {}", path.display()))?;
@@ -130,6 +130,19 @@ async fn main() -> Result<()> {
         }
         None => SkillRLConfig::default(),
     };
+
+    // Fill in API keys from environment variables when not set in the config file.
+    if let Ok(key) = std::env::var("OPENAI_API_KEY") {
+        if config.model.policy_api_key.is_empty() {
+            config.model.policy_api_key = key.clone();
+        }
+        if config.model.teacher_api_key.is_empty() {
+            config.model.teacher_api_key = key.clone();
+        }
+        if config.model.embedding_api_key.is_empty() {
+            config.model.embedding_api_key = key;
+        }
+    }
 
     match cli.command {
         Commands::Train => cmd_train(&config, &cli.env, cli.mock).await,
@@ -203,7 +216,7 @@ async fn cmd_distill(
     let text = std::fs::read_to_string(trajectories_path)
         .with_context(|| format!("Failed to read {}", trajectories_path.display()))?;
 
-    let trajectories: Vec<skillrl::trajectory::types::Trajectory> =
+    let trajectories: Vec<krill::trajectory::types::Trajectory> =
         serde_json::from_str(&text).context("Failed to parse trajectories")?;
 
     let successful: Vec<_> = trajectories.iter().filter(|t| t.success).cloned().collect();
@@ -348,14 +361,14 @@ fn create_env(choice: &EnvChoice, mock: bool) -> AnyEnv {
         }
         (EnvChoice::Alfworld, false) => {
             tracing::info!("Using live ALFWorld environment");
-            AnyEnv::AlfWorld(skillrl::env::alfworld::AlfWorldEnv::new(
+            AnyEnv::AlfWorld(krill::env::alfworld::AlfWorldEnv::new(
                 "http://localhost:3000",
                 50,
             ))
         }
         (EnvChoice::Webshop, false) => {
             tracing::info!("Using live WebShop environment");
-            AnyEnv::WebShop(skillrl::env::webshop::WebShopEnv::new(
+            AnyEnv::WebShop(krill::env::webshop::WebShopEnv::new(
                 "http://localhost:3001",
                 30,
             ))
